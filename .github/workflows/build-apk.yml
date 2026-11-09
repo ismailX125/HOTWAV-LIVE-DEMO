@@ -1,3 +1,4 @@
+
 name: Build HOTWAV APK
 
 on:
@@ -21,9 +22,28 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract project
+      - name: Extract and fix project
         run: |
           unzip -q HOTWAV_LIVE_DEMO_Project.zip
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("HOTWAV_LIVE_DEMO/app/build.gradle.kts")
+          s = p.read_text()
+          s = s.replace(
+              "    defaultConfig {",
+              """    compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+              kotlinOptions {
+                  jvmTarget = "17"
+              }
+              defaultConfig {"""
+          )
+          p.write_text(s)
+          PY
+
           cd HOTWAV_LIVE_DEMO
           gradle assembleDebug
 
